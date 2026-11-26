@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Billing & Receivables Studio</title>
+<style>
+:root{
+  --primary:#0f766e;
+  --primary2:#0ea5a8;
+  --navy:#0f2747;
+  --bg:#f6f8fb;
+  --card:#ffffff;
+  --text:#172033;
+  --muted:#64748b;
+  --border:#dbe3ec;
+  --danger:#b91c1c;
+  --success:#047857;
+  --warning:#b45309;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{
+  background:linear-gradient(135deg,var(--navy),#0d4f77 55%,var(--primary2));
+  color:#fff;padding:14px 18px;position:sticky;top:0;z-index:10;box-shadow:0 2px 10px rgba(0,0,0,.15)
+}
+.head-wrap{display:flex;align-items:center;gap:12px;max-width:1200px;margin:auto}
+.logo{width:96px;height:72px;border-radius:12px;object-fit:contain;background:#fff;padding:2px}
+header h1{font-size:20px;margin:0}
+header small{opacity:.9}
+nav{display:flex;gap:8px;overflow:auto;max-width:1200px;margin:10px auto 0;padding-bottom:2px}
+nav button{border:0;background:rgba(255,255,255,.12);color:#fff;padding:9px 13px;border-radius:999px;white-space:nowrap;cursor:pointer}
+nav button.active{background:#fff;color:var(--navy);font-weight:700}
+main{max-width:1200px;margin:18px auto;padding:0 14px 40px}
+section{display:none}.active-section{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(15,39,71,.05)}
+.metric .value{font-size:26px;font-weight:800;margin-top:6px}
+.metric .label{font-size:13px;color:var(--muted)}
+h2{font-size:20px;margin:0 0 14px}
+h3{font-size:16px;margin:0 0 10px}
+.row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px}
+input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--border);border-radius:9px;background:#fff;color:var(--text);font:inherit}
+textarea{min-height:80px;resize:vertical}
+button.primary,.btn{background:var(--primary);color:#fff;border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer}
+button.secondary{background:#fff;color:var(--navy);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer}
+button.danger{background:#fff;color:var(--danger);border:1px solid #fecaca;border-radius:9px;padding:8px 10px;cursor:pointer}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:10px 11px;border-bottom:1px solid var(--border);text-align:left;font-size:13px}
+th{background:#f8fafc;color:#334155}
+.badge{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;display:inline-block}
+.badge.paid{background:#d1fae5;color:#065f46}
+.badge.part{background:#fef3c7;color:#92400e}
+.badge.unpaid{background:#fee2e2;color:#991b1b}
+.item-row{display:grid;grid-template-columns:2.1fr .6fr .8fr .8fr auto;gap:8px;align-items:end;margin-bottom:8px}
+.right{text-align:right}
+.muted{color:var(--muted)}
+.invoice-preview{background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px}
+.invoice-top{display:flex;justify-content:space-between;gap:20px}
+.invoice-brand{display:flex;gap:12px;align-items:center}
+.invoice-logo{width:180px;height:110px;object-fit:contain;object-position:left center}
+.invoice-title{text-align:right}
+.invoice-table{width:100%;min-width:0;margin-top:18px}
+.invoice-table th,.invoice-table td{font-size:12px}
+.total-box{margin-left:auto;width:330px;max-width:100%;margin-top:14px}
+.total-line{display:flex;justify-content:space-between;padding:5px 0}
+.total-line.grand{font-size:18px;font-weight:800;border-top:2px solid var(--navy);padding-top:9px}
+.footer-note{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+@media(max-width:850px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .row,.form-grid{grid-template-columns:1fr}
+  .item-row{grid-template-columns:1fr 1fr}
+  .item-row > :first-child{grid-column:1/-1}
+  .invoice-top{flex-direction:column}
+  .invoice-title{text-align:left}
+}
+@media(max-width:520px){
+  .grid{grid-template-columns:1fr}
+  header h1{font-size:17px}
+  .logo{width:74px;height:56px}
+  .card{padding:13px}
+}
+@media print{
+  body{background:#fff}
+  header,nav,.no-print,#dashboard,#clients,#services,#invoices,#payments{display:none!important}
+  #invoicePrint{display:block!important}
+  main{margin:0;max-width:none;padding:0}
+  .invoice-preview{border:0;box-shadow:none;border-radius:0;padding:0}
+}
+
+.brand-hero{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  margin-bottom:14px;
+  box-shadow:0 3px 12px rgba(15,39,71,.07);
+}
+.brand-hero img{
+  display:block;
+  width:100%;
+  height:260px;
+  object-fit:contain;
+  object-position:center;
+  background:#fff;
+}
+@media(max-width:850px){
+  .brand-hero img{height:200px}
+}
+@media(max-width:520px){
+  .brand-hero img{height:150px}
+}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="head-wrap">
+    
+    <div>
+      <h1>Billing & Receivables Studio</h1>
+      <small>Mobile-friendly invoice & record keeping tool</small>
+    </div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+
+<main>
+<section id="dashboard" class="active-section">
+  <div class="brand-hero">
+    
+  </div>
+  <div class="grid" id="metrics"></div>
+  <div class="row" style="margin-top:12px">
+    <div class="card">
+      <h3>Recent Invoices</h3>
+      <div id="recentInvoices"></div>
+    </div>
+    <div class="card">
+      <h3>Outstanding Clients</h3>
+      <div id="outstandingClients"></div>
+    </div>
+  </div>
+</section>
+
+<section id="clients">
+  <div class="card">
+    <h2>Client Master</h2>
+    <div class="form-grid">
+      <div><label>Client / Company Name</label><input id="c_name"></div>
+      <div><label>Contact Person</label><input id="c_contact"></div>
+      <div><label>Phone</label><input id="c_phone"></div>
+      <div><label>Email</label><input id="c_email" type="email"></div>
+      <div><label>NTN / STRN</label><input id="c_tax"></div>
+      <div><label>Address</label><input id="c_address"></div>
+    </div>
+    <div class="actions"><button class="primary" onclick="saveClient()">Save Client</button></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>Clients</h3>
+    <div class="table-wrap"><table><thead><tr><th>Client</th><th>Contact</th><th>Phone</th><th>Email</th><th>Outstanding</th></tr></thead><tbody id="clientRows"></tbody></table></div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="card">
+    <h2>Service / Product Master</h2>
+    <div class="form-grid">
+      <div><label>Service / Product</label><input id="s_name"></div>
+      <div><label>Standard Rate (PKR)</label><input id="s_rate" type="number" min="0"></div>
+      <div><label>Description</label><input id="s_desc"></div>
+    </div>
+    <div class="actions"><button class="primary" onclick="saveService()">Save Service</button></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>Services</h3>
+    <div class="table-wrap"><table><thead><tr><th>Service / Product</th><th>Description</th><th>Standard Rate</th></tr></thead><tbody id="serviceRows"></tbody></table></div>
+  </div>
+</section>
+
+<section id="invoices">
+  <div class="card">
+    <h2>Create Invoice</h2>
+    <div class="form-grid">
+      <div><label>Client</label><select id="i_client"></select></div>
+      <div><label>Invoice Date</label><input id="i_date" type="date"></div>
+      <div><label>Due Date</label><input id="i_due" type="date"></div>
+      <div><label>Reference / PO No.</label><input id="i_ref"></div>
+      <div><label>Tax %</label><input id="i_tax" type="number" value="0" min="0" step="0.01"></div>
+      <div><label>Discount (PKR)</label><input id="i_discount" type="number" value="0" min="0"></div>
+    </div>
+    <h3 style="margin-top:16px">Invoice Items</h3>
+    <div id="items"></div>
+    <div class="actions">
+      <button class="secondary" onclick="addItem()">+ Add Item</button>
+      <button class="primary" onclick="saveInvoice()">Generate Invoice</button>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>Invoice Register</h3>
+    <div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Date</th><th>Client</th><th>Total</th><th>Received</th><th>Balance</th><th>Status</th><th></th></tr></thead><tbody id="invoiceRows"></tbody></table></div>
+  </div>
+</section>
+
+<section id="payments">
+  <div class="card">
+    <h2>Payment Entry</h2>
+    <div class="form-grid">
+      <div><label>Invoice</label><select id="p_invoice"></select></div>
+      <div><label>Payment Date</label><input id="p_date" type="date"></div>
+      <div><label>Amount Received (PKR)</label><input id="p_amount" type="number" min="0"></div>
+      <div><label>Payment Mode</label><select id="p_mode"><option>Bank Transfer</option><option>Cash</option><option>Cheque</option><option>Online</option><option>Other</option></select></div>
+      <div><label>Reference</label><input id="p_ref"></div>
+      <div><label>Remarks</label><input id="p_remarks"></div>
+    </div>
+    <div class="actions"><button class="primary" onclick="savePayment()">Save Payment</button></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>Payment Register</h3>
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Invoice</th><th>Client</th><th>Amount</th><th>Mode</th><th>Reference</th></tr></thead><tbody id="paymentRows"></tbody></table></div>
+  </div>
+</section>
+
+<section id="invoicePrint">
+  <div class="invoice-preview" id="printArea">
+    <div class="invoice-top">
+      <div class="invoice-brand">
+        
+        <div><strong style="font-size:22px">Studio Demo</strong><br><span class="muted">Sample service provider</span></div>
+      </div>
+      <div class="invoice-title"><div style="font-size:26px;font-weight:800">INVOICE</div><div id="pv_no"></div></div>
+    </div>
+    <div class="row" style="margin-top:22px">
+      <div><strong>Bill To</strong><div id="pv_client" style="margin-top:6px"></div></div>
+      <div><strong>Invoice Details</strong><div id="pv_meta" style="margin-top:6px"></div></div>
+    </div>
+    <table class="invoice-table"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th class="right">Amount</th></tr></thead><tbody id="pv_items"></tbody></table>
+    <div class="total-box">
+      <div class="total-line"><span>Subtotal</span><span id="pv_subtotal"></span></div>
+      <div class="total-line"><span>Discount</span><span id="pv_discount"></span></div>
+      <div class="total-line"><span>Tax</span><span id="pv_tax"></span></div>
+      <div class="total-line grand"><span>Total</span><span id="pv_total"></span></div>
+      <div class="total-line"><span>Received</span><span id="pv_received"></span></div>
+      <div class="total-line"><strong>Balance</strong><strong id="pv_balance"></strong></div>
+    </div>
+    <div class="footer-note">
+
+
+    </div>
+    <div class="actions no-print"><button class="primary" onclick="window.print()">Print / Save as PDF</button><button class="secondary" onclick="show('invoices')">Back</button></div>
+  </div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const store={
+  clients:JSON.parse(localStorage.getItem('billing_demo_v1_clients')||'[]'),
+  services:JSON.parse(localStorage.getItem('billing_demo_v1_services')||'[]'),
+  invoices:JSON.parse(localStorage.getItem('billing_demo_v1_invoices')||'[]'),
+  payments:JSON.parse(localStorage.getItem('billing_demo_v1_payments')||'[]')
+};
+function persist(){
+  localStorage.setItem('billing_demo_v1_clients',JSON.stringify(store.clients));
+  localStorage.setItem('billing_demo_v1_services',JSON.stringify(store.services));
+  localStorage.setItem('billing_demo_v1_invoices',JSON.stringify(store.invoices));
+  localStorage.setItem('billing_demo_v1_payments',JSON.stringify(store.payments));
+}
+const escapeHtml=value=>String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const fmt=n=>'PKR '+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+const today=()=>new Date().toISOString().slice(0,10);
+function nav(){
+  const tabs=[['dashboard','Dashboard'],['clients','Clients'],['services','Services'],['invoices','Invoices'],['payments','Payments']];
+  $('nav').innerHTML=tabs.map((x,i)=>`<button onclick="show('${x[0]}')" id="n_${x[0]}" class="${i===0?'active':''}">${x[1]}</button>`).join('');
+}
+function show(id){
+  document.querySelectorAll('main section').forEach(s=>s.classList.remove('active-section'));
+  $(id).classList.add('active-section');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  if($('n_'+id)) $('n_'+id).classList.add('active');
+  refresh();
+}
+function invoicePaid(inv){
+  return store.payments.filter(p=>p.invoiceId===inv.id).reduce((a,b)=>a+Number(b.amount),0);
+}
+function balance(inv){return Math.max(0,Number(inv.total)-invoicePaid(inv))}
+function status(inv){
+  const p=invoicePaid(inv),t=Number(inv.total);
+  if(p>=t && t>0)return 'Paid';
+  if(p>0)return 'Partially Paid';
+  return 'Unpaid';
+}
+function saveClient(){
+  const name=$('c_name').value.trim(); if(!name)return alert('Client name required');
+  store.clients.push({id:Date.now().toString(),name,contact:$('c_contact').value,phone:$('c_phone').value,email:$('c_email').value,tax:$('c_tax').value,address:$('c_address').value});
+  persist(); ['c_name','c_contact','c_phone','c_email','c_tax','c_address'].forEach(x=>$(x).value=''); refresh();
+}
+function saveService(){
+  const name=$('s_name').value.trim(); if(!name)return alert('Service name required');
+  store.services.push({id:Date.now().toString(),name,rate:Number($('s_rate').value||0),desc:$('s_desc').value});
+  persist(); ['s_name','s_rate','s_desc'].forEach(x=>$(x).value=''); refresh();
+}
+function addItem(){
+  const div=document.createElement('div'); div.className='item-row';
+  const options='<option value="">Custom item</option>'+store.services.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+  div.innerHTML=`<div><label>Service / Description</label><select onchange="pickService(this)">${options}</select><input placeholder="Description" class="desc" style="margin-top:6px"></div>
+  <div><label>Qty</label><input class="qty" type="number" min="1" value="1"></div>
+  <div><label>Rate</label><input class="rate" type="number" min="0" value="0"></div>
+  <div><label>Amount</label><input class="amount" disabled value="0"></div>
+  <div><button class="danger" onclick="this.closest('.item-row').remove()">×</button></div>`;
+  div.querySelector('.qty').addEventListener('input',calcRow);
+  div.querySelector('.rate').addEventListener('input',calcRow);
+  $('items').appendChild(div); calcRow.call(div.querySelector('.qty'));
+}
+function pickService(sel){
+  const s=store.services.find(x=>x.id===sel.value); const row=sel.closest('.item-row');
+  if(s){row.querySelector('.desc').value=s.name+(s.desc?' - '+s.desc:'');row.querySelector('.rate').value=s.rate}
+  calcRow.call(row.querySelector('.rate'));
+}
+function calcRow(){const row=this.closest('.item-row'); const a=Number(row.querySelector('.qty').value||0)*Number(row.querySelector('.rate').value||0); row.querySelector('.amount').value=a.toFixed(2)}
+function nextInvoiceNo(){
+  const yr=new Date().getFullYear();
+  const nums=store.invoices.filter(i=>i.no.startsWith('BT-'+yr+'-')).map(i=>parseInt(i.no.split('-').pop())||0);
+  return `BT-${yr}-${String((Math.max(0,...nums)+1)).padStart(4,'0')}`;
+}
+function saveInvoice(){
+  const clientId=$('i_client').value; if(!clientId)return alert('Select a client');
+  const rows=[...document.querySelectorAll('#items .item-row')];
+  if(!rows.length)return alert('Add at least one invoice item');
+  const items=rows.map(r=>({desc:r.querySelector('.desc').value||'Service',qty:Number(r.querySelector('.qty').value||0),rate:Number(r.querySelector('.rate').value||0)})).filter(x=>x.qty>0);
+  const subtotal=items.reduce((a,b)=>a+b.qty*b.rate,0), discount=Number($('i_discount').value||0), taxRate=Number($('i_tax').value||0);
+  const taxable=Math.max(0,subtotal-discount), tax=taxable*taxRate/100, total=taxable+tax;
+  const inv={id:Date.now().toString(),no:nextInvoiceNo(),clientId,date:$('i_date').value||today(),due:$('i_due').value||'',ref:$('i_ref').value,taxRate,discount,items,subtotal,tax,total};
+  store.invoices.push(inv); persist(); $('items').innerHTML=''; addItem(); refresh(); viewInvoice(inv.id);
+}
+function savePayment(){
+  const invoiceId=$('p_invoice').value, amount=Number($('p_amount').value||0); if(!invoiceId||amount<=0)return alert('Select invoice and enter amount');
+  const inv=store.invoices.find(i=>i.id===invoiceId); if(amount>balance(inv)+0.01)return alert('Payment exceeds outstanding balance');
+  store.payments.push({id:Date.now().toString(),invoiceId,date:$('p_date').value||today(),amount,mode:$('p_mode').value,ref:$('p_ref').value,remarks:$('p_remarks').value});
+  persist(); $('p_amount').value='';$('p_ref').value='';$('p_remarks').value=''; refresh();
+}
+function viewInvoice(id){
+  const inv=store.invoices.find(i=>i.id===id), c=store.clients.find(x=>x.id===inv.clientId)||{};
+  $('pv_no').textContent=inv.no;
+  $('pv_client').innerHTML=`<strong>${escapeHtml(c.name)}</strong><br>${escapeHtml(c.contact)}<br>${escapeHtml(c.address)}<br>${escapeHtml(c.phone)}${c.email?'<br>'+escapeHtml(c.email):''}${c.tax?'<br>NTN/STRN: '+escapeHtml(c.tax):''}`;
+  $('pv_meta').innerHTML=`Date: ${inv.date}<br>Due: ${inv.due||'-'}<br>Reference: ${escapeHtml(inv.ref||'-')}`;
+  $('pv_items').innerHTML=inv.items.map(x=>`<tr><td>${escapeHtml(x.desc)}</td><td>${x.qty}</td><td>${fmt(x.rate)}</td><td class="right">${fmt(x.qty*x.rate)}</td></tr>`).join('');
+  $('pv_subtotal').textContent=fmt(inv.subtotal);$('pv_discount').textContent=fmt(inv.discount);$('pv_tax').textContent=fmt(inv.tax);$('pv_total').textContent=fmt(inv.total);
+  $('pv_received').textContent=fmt(invoicePaid(inv));$('pv_balance').textContent=fmt(balance(inv)); show('invoicePrint');
+}
+function refresh(){
+  const total=store.invoices.reduce((a,b)=>a+Number(b.total),0), rec=store.payments.reduce((a,b)=>a+Number(b.amount),0), out=total-rec;
+  const now=new Date(), thisMonth=store.invoices.filter(i=>{const d=new Date(i.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()}).reduce((a,b)=>a+Number(b.total),0);
+  $('metrics').innerHTML=[
+    ['Total Billing',fmt(total)],['Total Received',fmt(rec)],['Outstanding',fmt(out)],['This Month',fmt(thisMonth)]
+  ].map(x=>`<div class="card metric"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
+  $('clientRows').innerHTML=store.clients.map(c=>{const o=store.invoices.filter(i=>i.clientId===c.id).reduce((a,i)=>a+balance(i),0);return `<tr><td>${escapeHtml(c.name)}</td><td>${escapeHtml(c.contact)}</td><td>${escapeHtml(c.phone)}</td><td>${escapeHtml(c.email)}</td><td>${fmt(o)}</td></tr>`}).join('');
+  $('serviceRows').innerHTML=store.services.map(s=>`<tr><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.desc)}</td><td>${fmt(s.rate)}</td></tr>`).join('');
+  $('i_client').innerHTML='<option value="">Select client</option>'+store.clients.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  $('invoiceRows').innerHTML=store.invoices.slice().reverse().map(i=>{const c=store.clients.find(x=>x.id===i.clientId)||{}; const st=status(i),cls=st==='Paid'?'paid':st==='Partially Paid'?'part':'unpaid';return `<tr><td>${i.no}</td><td>${i.date}</td><td>${escapeHtml(c.name)}</td><td>${fmt(i.total)}</td><td>${fmt(invoicePaid(i))}</td><td>${fmt(balance(i))}</td><td><span class="badge ${cls}">${st}</span></td><td><button class="secondary" onclick="viewInvoice('${i.id}')">View</button></td></tr>`}).join('');
+  $('p_invoice').innerHTML='<option value="">Select invoice</option>'+store.invoices.filter(i=>balance(i)>0.01).map(i=>{const c=store.clients.find(x=>x.id===i.clientId)||{};return `<option value="${i.id}">${i.no} — ${escapeHtml(c.name)} — ${fmt(balance(i))}</option>`}).join('');
+  $('paymentRows').innerHTML=store.payments.slice().reverse().map(p=>{const i=store.invoices.find(x=>x.id===p.invoiceId)||{},c=store.clients.find(x=>x.id===i.clientId)||{};return `<tr><td>${p.date}</td><td>${i.no||''}</td><td>${escapeHtml(c.name)}</td><td>${fmt(p.amount)}</td><td>${escapeHtml(p.mode)}</td><td>${escapeHtml(p.ref)}</td></tr>`}).join('');
+  const recent=store.invoices.slice(-5).reverse(); $('recentInvoices').innerHTML=recent.length?recent.map(i=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>${i.no}</span><strong>${fmt(i.total)}</strong></div>`).join(''):'<span class="muted">No invoices yet.</span>';
+  const outs=store.clients.map(c=>({c,amt:store.invoices.filter(i=>i.clientId===c.id).reduce((a,i)=>a+balance(i),0)})).filter(x=>x.amt>0).sort((a,b)=>b.amt-a.amt).slice(0,5);
+  $('outstandingClients').innerHTML=outs.length?outs.map(x=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>${escapeHtml(x.c.name)}</span><strong>${fmt(x.amt)}</strong></div>`).join(''):'<span class="muted">No outstanding balances.</span>';
+}
+nav(); $('i_date').value=today(); $('p_date').value=today(); addItem(); refresh();
+</script>
+</body>
+</html>
